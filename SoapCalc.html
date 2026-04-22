@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaponCalc — Calculateur de Saponification</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #F7F3EE;
+      --cream-dark: #EDE6DB;
+      --brown: #4A3728;
+      --brown-light: #7A5C45;
+      --brown-mid: #5C3D2E;
+      --sage: #7B8C6E;
+      --sage-light: #A8B89A;
+      --terracotta: #C4704A;
+      --terracotta-light: #E8A080;
+      --gold: #B89650;
+      --text: #2C1A0E;
+      --text-muted: #7A6355;
+      --border: #D4C5B2;
+      --white: #FFFFFF;
+      --red-warn: #C4503A;
+      --red-warn-bg: #FDF0EC;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--brown);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(44,26,14,0.18);
+    }
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: var(--cream);
+      letter-spacing: 0.03em;
+    }
+    .logo span { color: var(--terracotta-light); }
+    .header-badge {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--cream-dark);
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* LAYOUT */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    .page-intro {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding-top: 0.5rem;
+    }
+    .page-intro h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--brown);
+      margin-bottom: 8px;
+    }
+    .page-intro p {
+      font-size: 15px;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 2rem;
+      background: var(--cream-dark);
+      padding: 6px;
+      border-radius: 14px;
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .tab {
+      padding: 9px 22px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+    }
+    .tab:hover { color: var(--brown); }
+    .tab.active {
+      background: var(--white);
+      color: var(--brown);
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(44,26,14,0.12);
+    }
+
+    /* TWO COLUMN LAYOUT */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 720px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card:last-child { margin-bottom: 0; }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      color: var(--brown);
+      margin-bottom: 1rem;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--cream-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title .icon {
+      width: 28px;
+      height: 28px;
+      background: var(--cream);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    /* OILS */
+    .oil-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--cream-dark);
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+    .oil-row:last-of-type { border-bottom: none; }
+    .oil-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--sage);
+      flex-shrink: 0;
+    }
+    .oil-name {
+      flex: 1;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .oil-pct {
+      font-size: 12px;
+      color: var(--text-muted);
+      width: 36px;
+      text-align: right;
+    }
+    .oil-input {
+      width: 76px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--cream);
+      text-align: right;
+      transition: border-color 0.15s;
+    }
+    .oil-input:focus { outline: none; border-color: var(--brown-light); background: var(--white); }
+    .oil-unit { font-size: 12px; color: var(--text-muted); width: 12px; }
+    .btn-remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--border);
+      font-size: 18px;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .btn-remove:hover { color: var(--red-warn); }
+
+    /* ADD OIL */
+    .add-oil-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 1rem;
+    }
+    .add-oil-row select {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: var(--text);
+      background: var(--cream);
+      cursor: pointer;
+    }
+    .add-oil-row select:focus { outline: none; border-color: var(--brown-light); }
+    .btn-add {
+      padding: 8px 16px;
+      background: var(--cream-dark);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--brown);
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .btn-add:hover { background: var(--border); }
+
+    /* PARAMS */
+    .params-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .param-box {
+      background: var(--cream);
+      border: 1px solid var(--cream-dark);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .param-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .param-box input {
+      width: 100%;
+      padding: 6px 0;
+      border: none;
+      background: transparent;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--brown);
+    }
+    .param-box input:focus { outline: none; }
+    .param-hint { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+
+
+    /* CALCULATE BUTTON */
+    .btn-calculate {
+      width: 100%;
+      padding: 14px;
+      background: var(--brown);
+      color: var(--cream);
+      border: none;
+      border-radius: 12px;
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      margin-bottom: 1.25rem;
+      letter-spacing: 0.02em;
+    }
+    .btn-calculate:hover { background: var(--brown-mid); }
+    .btn-calculate:active { transform: scale(0.99); }
+
+    /* RESULTS */
+    .results { display: none; }
+    .results.show { display: block; animation: fadeIn 0.3s ease; }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 1.25rem;
+    }
+    .metric {
+      background: var(--cream);
+      border: 1px solid var(--cream-dark);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+    .metric-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      color: var(--brown);
+    }
+    .metric-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .metric.highlight {
+      background: var(--brown);
+      border-color: var(--brown);
+    }
+    .metric.highlight .metric-label { color: rgba(247,243,238,0.6); }
+    .metric.highlight .metric-value { color: var(--cream); }
+    .metric.highlight .metric-sub { color: rgba(247,243,238,0.5); }
+
+    /* RECIPE TABLE */
+    .recipe-table { width: 100%; border-collapse: collapse; }
+    .recipe-table tr { border-bottom: 1px solid var(--cream-dark); }
+    .recipe-table tr:last-child { border-bottom: none; }
+    .recipe-table td { padding: 9px 4px; font-size: 13px; }
+    .recipe-table td:first-child { color: var(--text-muted); }
+    .recipe-table td:last-child { text-align: right; font-weight: 500; color: var(--brown); }
+    .recipe-table .total-row td {
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--brown);
+      border-top: 2px solid var(--cream-dark);
+      padding-top: 12px;
+    }
+
+    /* PROPERTY BARS */
+    .prop-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .prop-name {
+      font-size: 12px;
+      color: var(--text-muted);
+      width: 110px;
+      flex-shrink: 0;
+    }
+    .bar-track {
+      flex: 1;
+      height: 7px;
+      background: var(--cream-dark);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .prop-score {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--brown);
+      width: 28px;
+      text-align: right;
+    }
+    .prop-badge {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .badge-good { background: #EAF3DE; color: #3B6D11; }
+    .badge-ok { background: #FAEEDA; color: #854F0B; }
+    .badge-low { background: #FCEBEB; color: #A32D2D; }
+
+    /* WARNINGS */
+    .warning {
+      background: var(--red-warn-bg);
+      border: 1px solid #F0C4B8;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--red-warn);
+      margin-top: 1rem;
+      display: flex;
+      gap: 8px;
+    }
+
+    /* TYPE INFO */
+    .type-info {
+      font-size: 13px;
+      color: var(--text-muted);
+      background: var(--cream);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 1.25rem;
+      line-height: 1.5;
+      border-left: 3px solid var(--sage);
+    }
+
+    /* ADDITIVES */
+    .additive-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--cream-dark);
+    }
+    .additive-row:last-of-type { border-bottom: none; }
+    .additive-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--terracotta);
+      flex-shrink: 0;
+    }
+    .additive-name { flex: 1; font-size: 14px; color: var(--text); }
+    .additive-tag {
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: var(--cream-dark);
+      color: var(--text-muted);
+    }
+    .additive-input {
+      width: 76px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--cream);
+      text-align: right;
+      transition: border-color 0.15s;
+    }
+    .additive-input:focus { outline: none; border-color: var(--brown-light); background: var(--white); }
+    .additive-unit { font-size: 12px; color: var(--text-muted); width: 12px; }
+    .additive-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.5;
+      padding: 8px 10px;
+      background: var(--cream);
+      border-radius: 8px;
+      border-left: 3px solid var(--terracotta);
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      margin-top: 3rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Soap<span>Calc</span></div>
+  <div class="header-badge">Formulation artisanale</div>
+</header>
+
+<div class="container">
+  <div class="page-intro">
+    <h1>Calculateur de Saponification</h1>
+    <p>Formulez vos recettes de savon — à froid, à chaud ou liquide — avec précision.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setType('cold')">Savon à froid</button>
+    <button class="tab" onclick="setType('hot')">Savon à chaud</button>
+    <button class="tab" onclick="setType('liquid')">Savon liquide</button>
+  </div>
+
+  <div class="main-grid">
+    <!-- LEFT COLUMN -->
+    <div class="left-col">
+
+      <div class="card">
+        <div class="card-title"><div class="icon">🫙</div> Huiles & graisses</div>
+        <div id="oils-list"></div>
+        <div class="add-oil-row">
+          <select id="add-oil-select"></select>
+          <button class="btn-add" onclick="addOil()">+ Ajouter</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><div class="icon">⚗️</div> Paramètres de formulation</div>
+        <div class="params-grid">
+          <div class="param-box">
+            <div class="param-label">Surgraissage</div>
+            <input type="number" id="superfat" value="5" min="0" max="30" step="1">
+            <div class="param-hint">% d'huile non saponifiée</div>
+          </div>
+          <div class="param-box">
+            <div class="param-label">Concentration soude</div>
+            <input type="number" id="lye-conc" value="33" min="20" max="40" step="1">
+            <div class="param-hint">% de soude dans l'eau</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><div class="icon">✨</div> Additifs</div>
+        <div id="additives-list"></div>
+        <div id="additives-note" class="additive-note" style="display:none;margin-top:10px;"></div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <div class="sidebar">
+
+      <div id="type-info-block" class="type-info"></div>
+
+      <button class="btn-calculate" onclick="calculate()">Calculer la recette</button>
+
+      <div class="results" id="results">
+        <div class="card">
+          <div class="card-title"><div class="icon">📋</div> Résumé</div>
+          <div class="metrics-grid" id="metrics-grid"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><div class="icon">📜</div> Recette complète</div>
+          <table class="recipe-table" id="recipe-table"></table>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><div class="icon">📊</div> Propriétés du savon</div>
+          <div id="props-bar"></div>
+        </div>
+
+        <div id="warnings"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  SaponCalc &mdash; Outil de formulation artisanale de savon &nbsp;|&nbsp; Les résultats sont indicatifs. Manipulez la soude avec précaution.
+</footer>
+
+<script>
+  const SAP = {
+    "Huile d'olive":      { naoh: 0.134, koh: 0.188, iodine: 79,  lauric:0,  myristic:0,  palmitic:11, stearic:3,  ricinoleic:0,  oleic:76, linoleic:10 },
+    "Huile de coco":      { naoh: 0.190, koh: 0.266, iodine: 10,  lauric:47, myristic:19, palmitic:9,  stearic:3,  ricinoleic:0,  oleic:8,  linoleic:2  },
+    "Huile de palme":     { naoh: 0.141, koh: 0.197, iodine: 51,  lauric:0,  myristic:1,  palmitic:44, stearic:5,  ricinoleic:0,  oleic:39, linoleic:10 },
+    "Beurre de karité":   { naoh: 0.128, koh: 0.179, iodine: 60,  lauric:0,  myristic:0,  palmitic:6,  stearic:37, ricinoleic:0,  oleic:47, linoleic:6  },
+    "Huile de ricin":     { naoh: 0.128, koh: 0.180, iodine: 86,  lauric:0,  myristic:0,  palmitic:1,  stearic:1,  ricinoleic:90, oleic:4,  linoleic:4  },
+    "Huile de tournesol": { naoh: 0.134, koh: 0.187, iodine: 125, lauric:0,  myristic:0,  palmitic:6,  stearic:5,  ricinoleic:0,  oleic:28, linoleic:61 },
+    "Huile d'avocat":     { naoh: 0.133, koh: 0.186, iodine: 86,  lauric:0,  myristic:0,  palmitic:15, stearic:1,  ricinoleic:0,  oleic:72, linoleic:12 },
+    "Huile de jojoba":    { naoh: 0.069, koh: 0.097, iodine: 82,  lauric:0,  myristic:0,  palmitic:0,  stearic:0,  ricinoleic:0,  oleic:65, linoleic:0  },
+    "Beurre de cacao":    { naoh: 0.137, koh: 0.192, iodine: 35,  lauric:0,  myristic:0,  palmitic:25, stearic:33, ricinoleic:0,  oleic:35, linoleic:3  },
+    "Huile de lin":       { naoh: 0.135, koh: 0.190, iodine: 170, lauric:0,  myristic:0,  palmitic:5,  stearic:4,  ricinoleic:0,  oleic:21, linoleic:16 },
+    "Huile de chanvre":   { naoh: 0.136, koh: 0.190, iodine: 150, lauric:0,  myristic:0,  palmitic:6,  stearic:2,  ricinoleic:0,  oleic:13, linoleic:57 },
+    "Huile d'argan":      { naoh: 0.136, koh: 0.190, iodine: 97,  lauric:0,  myristic:0,  palmitic:13, stearic:6,  ricinoleic:0,  oleic:46, linoleic:33 },
+    "Huile d'amande douce":       { naoh: 0.136, koh: 0.191, iodine: 99,  lauric:0,  myristic:0,  palmitic:7,  stearic:2,  ricinoleic:0,  oleic:71, linoleic:18 },
+    "Huile de noyau d'abricot":   { naoh: 0.135, koh: 0.189, iodine: 100, lauric:0,  myristic:0,  palmitic:6,  stearic:2,  ricinoleic:0,  oleic:66, linoleic:25 },
+    "Huile de macadamia":         { naoh: 0.139, koh: 0.195, iodine: 75,  lauric:0,  myristic:0,  palmitic:9,  stearic:3,  ricinoleic:0,  oleic:59, linoleic:2  },
+    "Huile de noisette":          { naoh: 0.136, koh: 0.191, iodine: 97,  lauric:0,  myristic:0,  palmitic:5,  stearic:3,  ricinoleic:0,  oleic:78, linoleic:10 },
+    "Beurre de mangue":           { naoh: 0.128, koh: 0.179, iodine: 45,  lauric:0,  myristic:0,  palmitic:8,  stearic:42, ricinoleic:0,  oleic:45, linoleic:3  },
+    "Huile de babassu":           { naoh: 0.175, koh: 0.245, iodine: 15,  lauric:50, myristic:20, palmitic:11, stearic:4,  ricinoleic:0,  oleic:10, linoleic:0  },
+    "Huile de neem":              { naoh: 0.139, koh: 0.195, iodine: 72,  lauric:0,  myristic:0,  palmitic:18, stearic:18, ricinoleic:0,  oleic:50, linoleic:13 },
+    "Huile de pépins de raisin":  { naoh: 0.126, koh: 0.177, iodine: 131, lauric:0,  myristic:0,  palmitic:8,  stearic:4,  ricinoleic:0,  oleic:16, linoleic:70 },
+    "Huile de sésame":            { naoh: 0.133, koh: 0.186, iodine: 110, lauric:0,  myristic:0,  palmitic:9,  stearic:4,  ricinoleic:0,  oleic:39, linoleic:46 },
+    "Huile de bourrache":         { naoh: 0.135, koh: 0.189, iodine: 135, lauric:0,  myristic:0,  palmitic:10, stearic:4,  ricinoleic:0,  oleic:16, linoleic:38 },
+    "Beurre de kokum":            { naoh: 0.137, koh: 0.192, iodine: 35,  lauric:0,  myristic:0,  palmitic:4,  stearic:56, ricinoleic:0,  oleic:36, linoleic:2  },
+    "Huile de germe de blé":      { naoh: 0.131, koh: 0.183, iodine: 130, lauric:0,  myristic:0,  palmitic:17, stearic:2,  ricinoleic:0,  oleic:17, linoleic:58 },
+    "Huile de son de riz":        { naoh: 0.128, koh: 0.179, iodine: 100, lauric:0,  myristic:1,  palmitic:22, stearic:3,  ricinoleic:0,  oleic:43, linoleic:30 },
+    "Huile de noix":              { naoh: 0.135, koh: 0.189, iodine: 145, lauric:0,  myristic:0,  palmitic:7,  stearic:2,  ricinoleic:0,  oleic:18, linoleic:60 },
+    "Huile d'arachide":           { naoh: 0.136, koh: 0.191, iodine: 93,  lauric:0,  myristic:0,  palmitic:11, stearic:2,  ricinoleic:0,  oleic:48, linoleic:32 },
+    "Huile de coton":             { naoh: 0.138, koh: 0.194, iodine: 108, lauric:0,  myristic:1,  palmitic:23, stearic:2,  ricinoleic:0,  oleic:17, linoleic:54 },
+    "Huile de carthame":          { naoh: 0.136, koh: 0.191, iodine: 145, lauric:0,  myristic:0,  palmitic:7,  stearic:2,  ricinoleic:0,  oleic:15, linoleic:75 },
+    "Suif de bœuf":               { naoh: 0.143, koh: 0.200, iodine: 45,  lauric:0,  myristic:3,  palmitic:28, stearic:22, ricinoleic:0,  oleic:43, linoleic:3  },
+    "Saindoux (Graisse de porc)": { naoh: 0.141, koh: 0.198, iodine: 57,  lauric:0,  myristic:1,  palmitic:28, stearic:13, ricinoleic:0,  oleic:46, linoleic:6  },
+    "Cire d'abeille":             { naoh: 0.069, koh: 0.097, iodine: 10,  lauric:0,  myristic:0,  palmitic:0,  stearic:0,  ricinoleic:0,  oleic:0,  linoleic:0  },
+    "Cire de soja":               { naoh: 0.135, koh: 0.189, iodine: 50,  lauric:0,  myristic:0,  palmitic:11, stearic:87, ricinoleic:0,  oleic:2,  linoleic:0  },
+  };
+
+  const TYPE_INFO = {
+    cold: "Savon à froid (SAF) : la soude réagit avec les huiles à température ambiante. NaOH (soude caustique) utilisé. Cure recommandée : 4 à 6 semaines.",
+    hot:  "Savon à chaud : le mélange est cuit jusqu'à saponification complète. Utilisable dès quelques jours. NaOH utilisé, même calcul que le SAF.",
+    liquid: "Savon liquide : KOH (hydroxyde de potassium) utilisé à la place de NaOH. Dilution dans l'eau nécessaire après fabrication. Cure : 1 à 2 semaines."
+  };
+
+  const ADDITIVES = {
+    "Acide citrique": {
+      tag: "Chélateur",
+      unit: "g",
+      defaultVal: 0,
+      placeholder: "ex: 5g",
+      tip: "Adoucit l'eau calcaire et augmente légèrement la mousse. Nécessite +0,63g de NaOH supplémentaire par gramme d'acide citrique utilisé.",
+      latherBonus: 5,
+      hardBonus: 0,
+      naohExtra: 0.63, // g NaOH per g citric acid
+    },
+    "Sel de mer": {
+      tag: "Dureté",
+      unit: "g",
+      defaultVal: 0,
+      placeholder: "ex: 20g",
+      tip: "Durcit le savon rapidement. En grande quantité (100% du poids d'huile), donne un savon très dur aux barres. Réduit légèrement la mousse.",
+      latherBonus: -3,
+      hardBonus: 10,
+      naohExtra: 0,
+    },
+    "Sucre (ou miel)": {
+      tag: "Mousse",
+      unit: "g",
+      defaultVal: 0,
+      placeholder: "ex: 10g",
+      tip: "Booste la mousse abondante et crémeuse. Dissoudre dans l'eau avant d'ajouter la soude. Peut accélérer la trace.",
+      latherBonus: 12,
+      hardBonus: 0,
+      naohExtra: 0,
+    },
+    "Soie (fibres)": {
+      tag: "Douceur",
+      unit: "g",
+      defaultVal: 0,
+      placeholder: "ex: 1g",
+      tip: "Ajoute une sensation soyeuse et adoucissante. Dissoudre dans la soude chaude. Quelques grammes suffisent (0,5–1% des huiles).",
+      latherBonus: 3,
+      hardBonus: 0,
+      naohExtra: 0,
+    },
+    "Argile (kaolin...)": {
+      tag: "Nettoyage",
+      unit: "g",
+      defaultVal: 0,
+      placeholder: "ex: 10g",
+      tip: "Améliore le glissement du savon sur la peau et booste légèrement le nettoyage. 1–3% du poids d'huile.",
+      latherBonus: 4,
+      hardBonus: 2,
+      naohExtra: 0,
+    },
+    "Lactate de sodium": {
+      tag: "Démoulage",
+      unit: "ml",
+      defaultVal: 0,
+      placeholder: "ex: 5ml",
+      tip: "Accélère le démoulage (24h au lieu de 48h). Durcit le savon rapidement. 1–3% du poids total de liquide.",
+      latherBonus: 0,
+      hardBonus: 5,
+      naohExtra: 0,
+    },
+  };
+
+  let activeAdditives = {};
+
+  function renderAdditivesList() {
+    const list = document.getElementById('additives-list');
+    list.innerHTML = '';
+    let notes = [];
+
+    for (const [name, cfg] of Object.entries(ADDITIVES)) {
+      const val = activeAdditives[name] || 0;
+      const row = document.createElement('div');
+      row.className = 'additive-row';
+      row.innerHTML = `
+        <div class="additive-dot"></div>
+        <span class="additive-name">${name}</span>
+        <span class="additive-tag">${cfg.tag}</span>
+        <input class="additive-input" type="number" min="0" max="999" step="0.5" value="${val || ''}" placeholder="0"
+          oninput="activeAdditives['${name}']=+this.value; renderAdditivesList();">
+        <span class="additive-unit">${cfg.unit}</span>
+      `;
+      list.appendChild(row);
+      if (val > 0) notes.push(`<b>${name}</b> : ${cfg.tip}`);
+    }
+
+    const noteBlock = document.getElementById('additives-note');
+    if (notes.length > 0) {
+      noteBlock.style.display = 'block';
+      noteBlock.innerHTML = notes.join('<br><br>');
+    } else {
+      noteBlock.style.display = 'none';
+    }
+  }
+
+  const BAR_COLORS = {
+    "Dureté":           "#7A5C45",
+    "Nettoyage":        "#4A8C6E",
+    "Mousse":           "#5C6FAB",
+    "Conditionnement":  "#C4704A",
+    "Stabilité mousse": "#8C7A3A",
+  };
+
+  let activeOils = {};
+  let soapType = 'cold';
+
+  function setType(t) {
+    soapType = t;
+    document.querySelectorAll('.tab').forEach((el, i) => {
+      el.classList.toggle('active', ['cold','hot','liquid'][i] === t);
+    });
+    document.getElementById('type-info-block').textContent = TYPE_INFO[t];
+    document.getElementById('results').classList.remove('show');
+  }
+
+  function renderOilsList() {
+    const list = document.getElementById('oils-list');
+    list.innerHTML = '';
+    const total = Object.values(activeOils).reduce((s, v) => s + (+v || 0), 0);
+    for (const [name, g] of Object.entries(activeOils)) {
+      const pct = total > 0 ? Math.round((+g / total) * 100) : 0;
+      const row = document.createElement('div');
+      row.className = 'oil-row';
+      row.innerHTML = `
+        <div class="oil-dot"></div>
+        <span class="oil-name">${name}</span>
+        <span class="oil-pct">${pct}%</span>
+        <input class="oil-input" type="number" min="0" max="9999" step="1" value="${g}"
+          oninput="activeOils['${name}']=+this.value; renderOilsList();">
+        <span class="oil-unit">g</span>
+        <button class="btn-remove" onclick="removeOil(this)" title="Supprimer">×</button>
+      `;
+      list.appendChild(row);
+    }
+    renderAddSelect();
+  }
+
+  function renderAddSelect() {
+    const sel = document.getElementById('add-oil-select');
+    const prev = sel.value;
+    sel.innerHTML = '';
+    for (const name of Object.keys(SAP)) {
+      if (!(name in activeOils)) {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        sel.appendChild(opt);
+      }
+    }
+    if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+  }
+
+  function addOil() {
+    const sel = document.getElementById('add-oil-select');
+    if (sel.value && !(sel.value in activeOils)) {
+      activeOils[sel.value] = 100;
+      renderOilsList();
+    }
+  }
+
+  function removeOil(name) {
+    const oilName = name.closest('.oil-row').querySelector('.oil-name').textContent;
+    delete activeOils[oilName];
+    renderOilsList();
+  }
+
+  function calculate() {
+    const superfat = (+document.getElementById('superfat').value || 5) / 100;
+    const lyeConc  = (+document.getElementById('lye-conc').value  || 33) / 100;
+    const isLiquid = soapType === 'liquid';
+    const sapKey   = isLiquid ? 'koh' : 'naoh';
+    const lyeName  = isLiquid ? 'KOH (hydroxyde de potassium)' : 'NaOH (soude caustique)';
+    const lyePurity = isLiquid ? 0.90 : 1.0;
+
+    let totalOil = 0, totalLyeNet = 0;
+    let props = { lauric:0, myristic:0, palmitic:0, stearic:0, ricinoleic:0, oleic:0, linoleic:0 };
+
+    for (const [name, g] of Object.entries(activeOils)) {
+      if (!g) continue;
+      totalOil += +g;
+      totalLyeNet += +g * SAP[name][sapKey] * (1 - superfat);
+      for (const k of Object.keys(props)) props[k] += +g * (SAP[name][k] || 0);
+    }
+
+    if (totalOil === 0) { alert('Ajoutez au moins une huile pour calculer.'); return; }
+    for (const k of Object.keys(props)) props[k] = Math.round(props[k] / totalOil);
+
+    const lyePure = totalLyeNet / lyePurity;
+    const water   = (totalLyeNet / lyeConc) - totalLyeNet;
+    const totalBatch = totalOil + lyePure + water;
+
+    // Additives bonuses
+    let latherBonus = 0, hardBonus = 0, extraNaoh = 0, additivesRows = '';
+    for (const [name, val] of Object.entries(activeAdditives)) {
+      if (!val) continue;
+      const cfg = ADDITIVES[name];
+      latherBonus += cfg.latherBonus;
+      hardBonus   += cfg.hardBonus;
+      extraNaoh   += val * (cfg.naohExtra || 0);
+      additivesRows += `<tr style="color:var(--terracotta)"><td>${name}</td><td>${val} ${cfg.unit}</td></tr>`;
+    }
+
+    // Scores (with additives bonuses)
+    const hard        = Math.min(100, Math.round((props.lauric + props.myristic + props.palmitic + props.stearic) * 0.90) + hardBonus);
+    const cleansing   = Math.min(100, Math.round((props.lauric + props.myristic) * 0.85));
+    const lather      = Math.min(100, Math.round((props.lauric + props.myristic + props.ricinoleic) * 0.85) + latherBonus);
+    const conditioning= Math.min(100, Math.round((props.ricinoleic + props.oleic + props.linoleic) * 0.70));
+    const stableFoam  = Math.min(100, Math.round((props.palmitic + props.stearic + props.lauric) * 0.80));
+
+    const lyePureFinal = lyePure + extraNaoh;
+    const totalBatchFinal = totalOil + lyePureFinal + water + Object.entries(activeAdditives).reduce((s,[n,v]) => s + (+v||0), 0);
+
+    // --- METRICS ---
+    const metricsGrid = document.getElementById('metrics-grid');
+    metricsGrid.innerHTML = `
+      <div class="metric"><div class="metric-label">Total huiles</div><div class="metric-value">${Math.round(totalOil)} g</div></div>
+      <div class="metric highlight"><div class="metric-label">${isLiquid ? 'KOH' : 'NaOH'}</div><div class="metric-value">${lyePureFinal.toFixed(1)} g</div><div class="metric-sub">pur à ${Math.round(lyePurity*100)}%${extraNaoh > 0 ? ' + acide citrique' : ''}</div></div>
+      <div class="metric"><div class="metric-label">Eau distillée</div><div class="metric-value">${Math.round(water)} g</div></div>
+      <div class="metric"><div class="metric-label">Batch total</div><div class="metric-value">${Math.round(totalBatchFinal)} g</div></div>
+    `;
+
+    // --- RECIPE TABLE ---
+    const table = document.getElementById('recipe-table');
+    let rows = '';
+    for (const [name, g] of Object.entries(activeOils)) {
+      if (!g) continue;
+      const pct = Math.round((+g / totalOil) * 100);
+      rows += `<tr><td>${name}</td><td>${Math.round(g)} g &nbsp;<span style="color:#B0A090;font-weight:400;">${pct}%</span></td></tr>`;
+    }
+    if (additivesRows) {
+      rows += `<tr><td colspan="2" style="font-size:11px;color:var(--text-muted);padding-top:10px;padding-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;">Additifs</td></tr>`;
+      rows += additivesRows;
+    }
+    rows += `<tr><td>${lyeName}</td><td>${lyePureFinal.toFixed(1)} g</td></tr>`;
+    rows += `<tr><td>Eau distillée</td><td>${Math.round(water)} g</td></tr>`;
+    rows += `<tr class="total-row"><td>Total batch</td><td>${Math.round(totalBatchFinal)} g</td></tr>`;
+    table.innerHTML = rows;
+
+    // --- PROPERTY BARS ---
+    const propData = [
+      { label: "Dureté",           val: hard },
+      { label: "Nettoyage",        val: cleansing },
+      { label: "Mousse",           val: lather },
+      { label: "Conditionnement",  val: conditioning },
+      { label: "Stabilité mousse", val: stableFoam },
+    ];
+    const propsBar = document.getElementById('props-bar');
+    propsBar.innerHTML = propData.map(p => {
+      const badge = p.val >= 60 ? '<span class="prop-badge badge-good">Bon</span>'
+                  : p.val >= 35 ? '<span class="prop-badge badge-ok">Moyen</span>'
+                  : '<span class="prop-badge badge-low">Faible</span>';
+      return `
+        <div class="prop-row">
+          <span class="prop-name">${p.label}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${p.val}%;background:${BAR_COLORS[p.label]}"></div></div>
+          <span class="prop-score">${p.val}</span>
+          ${badge}
+        </div>`;
+    }).join('');
+
+    // --- WARNINGS ---
+    const iodineSum = Object.entries(activeOils).reduce((s, [n, g]) => s + (+g * (SAP[n]?.iodine || 0)), 0) / totalOil;
+    const warnings = document.getElementById('warnings');
+    let warnHtml = '';
+    if (iodineSum > 70) {
+      warnHtml += `<div class="warning">⚠️ Indice d'iode élevé (${Math.round(iodineSum)}) — votre savon peut rancir rapidement. Ajoutez de la vitamine E (1%) comme antioxydant.</div>`;
+    }
+    if (conditioning > 80) {
+      warnHtml += `<div class="warning" style="margin-top:8px;">⚠️ Conditionnement très élevé — le savon risque d'être mou et de fondre vite. Augmentez les huiles dures (coco, palme).</div>`;
+    }
+    warnings.innerHTML = warnHtml;
+
+    document.getElementById('results').classList.add('show');
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Init
+  activeOils = {};
+  activeAdditives = {};
+  setType('cold');
+  renderOilsList();
+  renderAdditivesList();
+</script>
+</body>
+</html>
