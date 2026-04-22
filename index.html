@@ -705,8 +705,8 @@
         <div class="additive-dot"></div>
         <span class="additive-name">${name}</span>
         <span class="additive-tag">${cfg.tag}</span>
-        <input class="additive-input" type="number" min="0" max="999" step="0.5" value="${val || ''}" placeholder="0"
-          oninput="activeAdditives['${name}']=+this.value; renderAdditivesList();">
+        <input class="additive-input" type="number" min="0" max="999"  value="${val}" placeholder="0"
+          onchange="activeAdditives[this.closest('.additive-row').querySelector('.additive-name').textContent]=+this.value; renderAdditivesList();">
         <span class="additive-unit">${cfg.unit}</span>
       `;
       list.appendChild(row);
@@ -754,8 +754,8 @@
         <div class="oil-dot"></div>
         <span class="oil-name">${name}</span>
         <span class="oil-pct">${pct}%</span>
-        <input class="oil-input" type="number" min="0" max="9999" step="1" value="${g}"
-          oninput="activeOils['${name}']=+this.value; renderOilsList();">
+        <input class="oil-input" type="number" min="0" max="9999"  value="${g}" 
+          onchange="activeOils[this.closest('.oil-row').querySelector('.oil-name').textContent]=+this.value; renderOilsList();">
         <span class="oil-unit">g</span>
         <button class="btn-remove" onclick="removeOil(this)" title="Supprimer">×</button>
       `;
